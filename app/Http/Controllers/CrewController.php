@@ -21,12 +21,21 @@ class CrewController extends Controller
         $perPage = $request->input('page_size', 10); // Default 10 data per halaman
         $page = $request->input('page_number', 1);   // Default halaman 1
 
-        // 3. Query ke Database dengan relasi/kondisi (Sesuai legacy table-mu)
-        // Asumsi: tabel CrewMember memiliki kolom foreign key ke kapal, misalnya 'ShipCode'
-        $crewList = CrewMember::where('ShipCode', $validated['ship_code'])
+        // 3. Query menggunakan relasi JOIN antar tabel
+        $crewList = CrewMember::select('crewmember.*') // Ambil data biodatanya saja agar bersih
+            ->join('crewservicehistory', 'crewmember.CrewMemberId', '=', 'crewservicehistory.CrewMemberId')
+            ->where('crewservicehistory.ShipCode', $validated['ship_code'])
             ->paginate($perPage, ['*'], 'page_number', $page);
 
-        // 4. Return hasil paginasi
-        return response()->json($crewList);
+        // 4. Transformasi format Laravel menjadi format PagedResult bawaan .NET lama
+        return response()->json([
+            'Items' => $crewList->items(),          // Mengambil array datanya saja
+            'TotalCount' => $crewList->total(),     // Total keseluruhan data
+            'PageNumber' => $crewList->currentPage(), // Halaman saat ini
+            'PageSize' => $crewList->perPage(),     // Ukuran per halaman
+            'TotalPages' => $crewList->lastPage(),  // Total halaman
+            'HasNextPage' => $crewList->hasMorePages(), // True/False apakah ada halaman selanjutnya
+            'HasPreviousPage' => ! $crewList->onFirstPage()
+        ]);
     }
 }
