@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ShipController;
+use App\Http\Controllers\CrewController;
 
 // Endpoint Publik (Tanpa Token)
 Route::post('Auth/login', [AuthController::class, 'login']);
@@ -19,4 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('Ships', [ShipController::class, 'store']);
     Route::put('Ships/{code}', [ShipController::class, 'update']);
     Route::delete('Ships/{code}', [ShipController::class, 'destroy']);
+
+    Route::get('Crew', [CrewController::class, 'index']);
 });
+
